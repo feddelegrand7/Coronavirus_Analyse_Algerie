@@ -60,7 +60,6 @@ crn_alg_lg <- crn_alg %>% pivot_longer(cols = starts_with("age"), names_to = "ag
 crn_alg_lg <- crn_alg_lg %>% select(fr, age, nombre, everything())
 
 
-crn_alg_lg_f <- crn_alg_lg %>% filter(nombre > 0)
 
 ```
 
@@ -68,21 +67,15 @@ crn_alg_lg_f <- crn_alg_lg %>% filter(nombre > 0)
 
 library()
 
-p1 <- ggplot(crn_alg_lg_f, aes(age)) +
-  geom_bar() +
+p1 <- ggplot(crn_alg_lg, aes(age, nombre)) +
+  geom_col() +
   labs(title = "Distribution des cas de Covid-19 en Algérie selon l'Age au 30/03/2020", 
     y = "nombre", x = "", subtitle = "Fait par @moh_fodil", caption = "source des données: https://api.healthdz.com/covid19/now?pretty") +
   ggthemes::theme_pander()
   
-p2 <- ggplot(crn_alg_lg_f, aes(age)) +
-  geom_bar(aes(y = ..prop.., group = 1)) +
-  labs(title = "Distribution des cas de Covid-19 en Algérie selon l'Age au 30/03/2020", 
-    y = "proportion", x = "", subtitle = "Fait par @moh_fodil", caption = "source des données: https://api.healthdz.com/covid19/now?pretty") +
-  ggthemes::theme_pander()
 
 
 ggsave(plot = p1, "age_dist.png", h = 14/3, w = 22/3, type = "cairo-png")
-ggsave(plot = p2, "age_dist_prop.png", h = 14/3, w = 22/3, type = "cairo-png")
 
 
 ```
