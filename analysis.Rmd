@@ -1,0 +1,184 @@
+---
+title: "corona_analysis"
+author: "Mohamed El Fodil Ihaddaden"
+date: "01/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(reticulate)
+library(tidyverse)
+
+```
+
+
+
+```{python}
+import pandas as pd
+import numpy as np
+import requests
+import json
+
+request =  requests.get('https://api.healthdz.com/covid19/now?pretty')
+
+jdata= json.loads(request.text)
+
+df = pd.DataFrame(jdata)
+
+
+
+
+```
+
+
+```{r}
+crn_alg <- py$df
+
+
+crn_alg <- crn_alg %>% select(fr, deaths:males, starts_with("age"), create, update, reported)
+
+```
+
+
+```{r}
+
+crn_alg
+
+
+```
+
+```{r}
+
+crn_alg_lg <- crn_alg %>% pivot_longer(cols = starts_with("age"), names_to = "age", values_to = "nombre")
+
+
+crn_alg_lg <- crn_alg_lg %>% select(fr, age, nombre, everything())
+
+
+crn_alg_lg_f <- crn_alg_lg %>% filter(nombre > 0)
+
+```
+
+```{r message=FALSE, warning=FALSE}
+
+library()
+
+p1 <- ggplot(crn_alg_lg_f, aes(age)) +
+  geom_bar() +
+  labs(title = "Distribution des cas de Covid-19 en Algérie selon l'Age au 30/03/2020", 
+    y = "nombre", x = "", subtitle = "Fait par @moh_fodil", caption = "source des données: https://api.healthdz.com/covid19/now?pretty") +
+  ggthemes::theme_pander()
+  
+p2 <- ggplot(crn_alg_lg_f, aes(age)) +
+  geom_bar(aes(y = ..prop.., group = 1)) +
+  labs(title = "Distribution des cas de Covid-19 en Algérie selon l'Age au 30/03/2020", 
+    y = "proportion", x = "", subtitle = "Fait par @moh_fodil", caption = "source des données: https://api.healthdz.com/covid19/now?pretty") +
+  ggthemes::theme_pander()
+
+
+ggsave(plot = p1, "age_dist.png", h = 14/3, w = 22/3, type = "cairo-png")
+ggsave(plot = p2, "age_dist_prop.png", h = 14/3, w = 22/3, type = "cairo-png")
+
+
+```
+
+
+Now let's go for distribution according to gender: 
+
+```{r}
+
+data_gender <- crn_alg %>% pivot_longer(cols = c("females", "males"), names_to = "gender", values_to = "gender_count") %>% 
+  select(fr, gender, gender_count, everything())
+
+```
+
+```{r}
+
+p3 <- ggplot(data_gender, aes(gender, gender_count)) +
+  geom_col(fill = "steelblue", col = "steelblue") +
+   labs(
+     title = "Cas de Covid-19 en Algérie selon le genre au 30/03/2020", 
+     y = "Nombre", 
+     x = "", 
+     subtitle = "Fait par @moh_fodil",
+     caption = "source des données: https://api.healthdz.com/covid19/now?pretty") +
+     ggthemes::theme_pander() +
+  scale_y_continuous(breaks = seq(0, 250, 20))
+
+ 
+
+ggsave(plot = p3, "genre_dist.png", h = 14/3, w = 22/3, type = "cairo-png")
+
+
+```
+
+
+```{r}
+crn_alg_plus_10 <- crn_alg %>% filter(confirmed > 10)
+
+crn_alg_case <- crn_alg_plus_10 %>% pivot_longer(cols = c("deaths", "recovers", "active"), names_to = "cas", values_to = "nombre")
+```
+
+
+
+```{r}
+
+ggthemr::ggthemr("fresh")
+
+p4 <- ggplot(crn_alg_case, aes(reorder(fr, nombre), nombre, fill = cas)) +
+  geom_bar(stat = "identity", col = "white") +
+  coord_flip() +
+  labs(title = "Wilayas avec plus de 10 cas confirmés", 
+    subtitle = "fait par @moh_fodil", 
+    fill = "", x = "",
+    caption = "source des données: https://api.healthdz.com/covid19/now?pretty"
+    )
+
+ggsave(plot = p4, "wilaya_etat.png", h = 14/3, w = 22/3, type = "cairo-png")
+
+
+```
+
+
+```{r}
+
+
+crn_dist <- crn_alg %>% pivot_longer(cols = c("deaths", "recovers", "active"), names_to = "cas", values_to = "nombre")
+
+
+```
+
+```{r}
+
+p5 <- ggplot(crn_dist, aes(nombre)) +
+  geom_histogram( binwidth = 10) +
+  facet_wrap(~ factor(cas), nrow = 3) +
+  labs(title = "Distribution selon les états du covid-19", 
+    subtitle = "fait par @moh_fodil", 
+    fill = "", x = "",
+    caption = "source des données: https://api.healthdz.com/covid19/now?pretty"
+    )
+
+ggsave(plot = p5, "etat.png", h = 14/3, w = 22/3, type = "cairo-png")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
